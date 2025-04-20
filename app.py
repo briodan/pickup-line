@@ -4,7 +4,7 @@ import os
 
 app = Flask(__name__)
 
-# Set up the OpenAI client
+# Set up OpenAI client (for SDK >=1.0.0)
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/")
@@ -14,10 +14,9 @@ def index():
 @app.route("/api/dirtyline", methods=["GET"])
 def get_dirty_line():
     prompt = "Give me a short, playful, and mildly dirty pickup line to send to my wife. Keep it flirty, funny, and under 30 words."
-
     try:
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o",  # ✅ works with your account
             messages=[{"role": "user", "content": prompt}],
             temperature=0.95,
             max_tokens=60
