@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pickup Line Generator</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 2em; }
+    button { font-size: 1.2em; padding: 0.5em 1em; margin-top: 1em; }
+    #line { margin-top: 1em; font-style: italic; font-size: 1.3em; }
+  </style>
+</head>
+<body>
+  <h1>❤️ Dirty Pickup Line Generator</h1>
+  <button onclick="getLine()">Generate Line</button>
+  <div id="line"></div>
+
+  <script>
+    async function getLine() {
+      const res = await fetch('/api/dirtyline');
+      const data = await res.json();
+      document.getElementById("line").innerText = data.line || data.error;
+    }
+  </script>
+</body>
+</html>
