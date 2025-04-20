@@ -4,21 +4,49 @@
   <meta charset="UTF-8">
   <title>Pickup Line Generator</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 2em; }
-    button { font-size: 1.2em; padding: 0.5em 1em; margin-top: 1em; }
-    #line { margin-top: 1em; font-style: italic; font-size: 1.3em; }
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2rem;
+      background-color: #fff5f8;
+    }
+    h1 {
+      color: #d6336c;
+    }
+    button {
+      font-size: 1.2rem;
+      padding: 0.8rem 1.5rem;
+      background-color: #ff69b4;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #ff4fa3;
+    }
+    #line {
+      margin-top: 2rem;
+      font-size: 1.5rem;
+      font-style: italic;
+      color: #333;
+    }
   </style>
 </head>
 <body>
-  <h1>❤️ Dirty Pickup Line Generator</h1>
-  <button onclick="getLine()">Generate Line</button>
+  <h1>💘 Pickup Line Generator</h1>
+  <button onclick="generateLine()">Give Me a Line</button>
   <div id="line"></div>
 
   <script>
-    async function getLine() {
-      const res = await fetch('/api/dirtyline');
-      const data = await res.json();
-      document.getElementById("line").innerText = data.line || data.error;
+    async function generateLine() {
+      try {
+        const res = await fetch('/api/dirtyline');
+        const data = await res.json();
+        document.getElementById("line").innerText = data.line || data.error || "Something went wrong";
+      } catch (e) {
+        document.getElementById("line").innerText = "Request failed!";
+      }
     }
   </script>
 </body>

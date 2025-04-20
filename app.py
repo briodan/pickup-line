@@ -1,11 +1,11 @@
-from flask import Flask, jsonify, render_template, request, abort
+from flask import Flask, jsonify, render_template, request
 import openai
 import os
 
 app = Flask(__name__)
 
+# Load OpenAI API key from environment
 openai.api_key = os.getenv("OPENAI_API_KEY")
-auth_token = os.getenv("API_AUTH_TOKEN")
 
 @app.route("/")
 def index():
@@ -13,10 +13,6 @@ def index():
 
 @app.route("/api/dirtyline", methods=["GET"])
 def get_dirty_line():
-    token = request.headers.get("Authorization", "").replace("Bearer ", "")
-    if auth_token and token != auth_token:
-        abort(401)
-
     prompt = "Give me a short, playful, and mildly dirty pickup line to send to my wife. Keep it flirty, funny, and under 30 words."
     try:
         response = openai.ChatCompletion.create(
@@ -29,6 +25,6 @@ def get_dirty_line():
         return jsonify({"line": line})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-        
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
