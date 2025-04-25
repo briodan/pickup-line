@@ -4,50 +4,69 @@
   <meta charset="UTF-8">
   <title>Pickup Line Generator</title>
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 2rem;
-      background-color: #fff5f8;
-    }
-    h1 {
-      color: #d6336c;
-    }
-    button {
-      font-size: 1.2rem;
-      padding: 0.8rem 1.5rem;
-      background-color: #ff69b4;
-      border: none;
-      border-radius: 8px;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #ff4fa3;
-    }
-    #line {
-      margin-top: 2rem;
-      font-size: 1.5rem;
-      font-style: italic;
-      color: #333;
-    }
+    body { font-family: sans-serif; text-align: center; padding: 2rem; background-color: #fff5f8; }
+    button { font-size: 1.2rem; padding: 0.8rem 1.5rem; background-color: #ff69b4; border: none; border-radius: 8px; color: white; cursor: pointer; }
+    button:hover { background-color: #ff4fa3; }
+    #line { margin-top: 2rem; font-size: 1.5rem; font-style: italic; color: #333; }
+    .stars button { margin: 0 5px; font-size: 1.5rem; background: none; border: none; color: #ffa500; cursor: pointer; }
+    .saved-lines { margin-top: 3rem; }
   </style>
 </head>
 <body>
   <h1>💘 Pickup Line Generator</h1>
   <button onclick="generateLine()">Give Me a Line</button>
+
   <div id="line"></div>
+  <div id="rating" style="margin-top: 1rem;" class="stars"></div>
+
+  <div class="saved-lines">
+    <h2>⭐ Saved Lines</h2>
+    <ul id="saved"></ul>
+  </div>
 
   <script>
+    let currentLine = '';
+
     async function generateLine() {
-      try {
-        const res = await fetch('/api/dirtyline');
-        const data = await res.json();
-        document.getElementById("line").innerText = data.line || data.error || "Something went wrong";
-      } catch (e) {
-        document.getElementById("line").innerText = "Request failed!";
+      const res = await fetch('/api/dirtyline');
+      const data = await res.json();
+      document.getElementById("line").innerText = data.line || data.error || "Something went wrong";
+      currentLine = data.line;
+      showRating();
+      fetchSaved();
+    }
+
+    function showRating() {
+      const ratingDiv = document.getElementById("rating");
+      ratingDiv.innerHTML = 'Rate it: ';
+      for (let i = 1; i <= 5; i++) {
+        ratingDiv.innerHTML += `<button onclick="rateLine(${i})">★</button>`;
       }
     }
+
+    async function rateLine(score) {
+      await fetch('/api/rate_line', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ line: currentLine, rating: score })
+      });
+      fetchSaved();
+      alert("Thanks for rating!");
+    }
+
+    async function fetchSaved() {
+      const res = await fetch('/api/saved_lines');
+      const data = await res.json();
+      const savedList = document.getElementById("saved");
+      savedList.innerHTML = '';
+      data.saved_lines.forEach(line => {
+        const li = document.createElement('li');
+        li.innerText = line;
+        savedList.appendChild(li);
+      });
+    }
+
+    window.onload = fetchSaved;
   </script>
 </body>
 </html>
