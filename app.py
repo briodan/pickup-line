@@ -4,6 +4,13 @@ import openai
 import requests
 import json
 import random
+import logging
+
+# Setup Logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
 
 app = Flask(__name__)
 
@@ -17,23 +24,30 @@ openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 def load_saved_lines():
     if not os.path.exists(SAVED_LINES_FILE):
+        logging.info("No saved_lines.json file found. Returning empty list.")
         return []
     try:
         with open(SAVED_LINES_FILE, "r") as f:
-            return json.load(f)
-    except Exception:
+            lines = json.load(f)
+            logging.info(f"Loaded {len(lines)} saved lines.")
+            return lines
+    except Exception as e:
+        logging.error(f"Error loading saved lines: {e}")
         return []
 
 def save_saved_lines(lines):
     with open(SAVED_LINES_FILE, "w") as f:
         json.dump(lines, f, indent=2)
+    logging.info(f"Saved {len(lines)} lines to saved_lines.json")
 
 @app.route("/")
 def index():
+    logging.info("GET / - Serving index.html")
     return render_template("index.html")
 
 @app.route("/api/dirtylines", methods=["GET"])
 def get_dirty_lines():
+    logging.info("GET /api/dirtylines - Generating new pickup lines")
     saved_lines = load_saved_lines()
 
     examples_text = ""
@@ -70,10 +84,12 @@ Respond only with a pure JSON array of pickup lines like:
         data = response.json()
         text = data["choices"][0]["message"]["content"].strip()
 
-        lines = json.loads(text)  # Expect clean JSON array
+        lines = json.loads(text)
+        logging.info(f"Successfully generated {len(lines)} lines.")
         return jsonify({"lines": lines})
 
     except Exception as e:
+        logging.error(f"Error generating lines: {e}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/rate_line", methods=["POST"])
@@ -81,8 +97,10 @@ def rate_line():
     data = request.get_json()
     line = data.get("line")
     rating = data.get("rating")
+    logging.info(f"POST /api/rate_line - Rating: {rating} stars for: {line}")
 
     if not line or rating is None:
+        logging.warning("Rating request missing 'line' or 'rating'")
         return jsonify({"error": "Missing line or rating"}), 400
 
     if int(rating) >= 4:
@@ -90,6 +108,7 @@ def rate_line():
         if not any(entry["line"] == line for entry in saved_lines):
             saved_lines.append({"line": line, "rating": rating})
             save_saved_lines(saved_lines)
+            logging.info(f"Saved new line: {line}")
 
     return jsonify({"status": "ok"})
 
@@ -97,27 +116,34 @@ def rate_line():
 def delete_line():
     data = request.get_json()
     line = data.get("line")
+    logging.info(f"POST /api/delete_line - Deleting line: {line}")
 
     if not line:
+        logging.warning("Delete request missing 'line'")
         return jsonify({"error": "Missing line to delete"}), 400
 
     saved_lines = load_saved_lines()
-    saved_lines = [entry for entry in saved_lines if entry["line"] != line]
-    save_saved_lines(saved_lines)
+    new_saved_lines = [entry for entry in saved_lines if entry["line"] != line]
+    save_saved_lines(new_saved_lines)
 
+    logging.info(f"Deleted line: {line}")
     return jsonify({"status": "deleted"})
 
 @app.route("/api/saved_lines", methods=["GET"])
 def get_saved_lines():
+    logging.info("GET /api/saved_lines - Returning all saved lines")
     saved_lines = load_saved_lines()
     return jsonify({"saved_lines": saved_lines})
 
 @app.route("/api/ha_pickup_line", methods=["GET"])
 def ha_pickup_line():
+    logging.info("GET /api/ha_pickup_line - Returning one random saved line")
     saved_lines = load_saved_lines()
     if not saved_lines:
         return jsonify({"line": "No saved pickup lines yet!"})
-    return jsonify({"line": random.choice(saved_lines)["line"]})
+    selected = random.choice(saved_lines)
+    logging.info(f"Selected line for HA: {selected['line']}")
+    return jsonify({"line": selected["line"]})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
