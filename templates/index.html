@@ -4,16 +4,61 @@
   <meta charset="UTF-8">
   <title>Pickup Line Generator</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 2rem; background-color: #fff5f8; }
-    button { font-size: 1rem; padding: 0.5rem 1rem; margin: 0.3rem; background-color: #ff69b4; border: none; border-radius: 8px; color: white; cursor: pointer; }
-    button:hover { background-color: #ff4fa3; }
-    .line { margin-top: 1rem; font-size: 1.2rem; font-style: italic; color: #333; }
-    .stars button { background: none; border: none; color: #ffa500; font-size: 1.5rem; cursor: pointer; }
-    .saved-lines { margin-top: 3rem; }
-    ul { list-style-type: none; padding: 0; }
-    li { margin: 0.5rem 0; }
-    .delete-btn { font-size: 0.9rem; background-color: #ff4f4f; border: none; border-radius: 5px; padding: 0.3rem 0.5rem; margin-left: 10px; color: white; cursor: pointer; }
-    .delete-btn:hover { background-color: #e03a3a; }
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2rem;
+      background-color: #fff5f8;
+    }
+    button {
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+      margin: 0.3rem;
+      background-color: #ff69b4;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #ff4fa3;
+    }
+    .line {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      font-style: italic;
+      color: #333;
+    }
+    .stars button {
+      background: none;
+      border: none;
+      color: #ffa500;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .saved-lines {
+      margin-top: 3rem;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      margin: 0.5rem 0;
+    }
+    .delete-btn {
+      font-size: 0.9rem;
+      background-color: #ff4f4f;
+      border: none;
+      border-radius: 5px;
+      padding: 0.3rem 0.5rem;
+      margin-left: 10px;
+      color: white;
+      cursor: pointer;
+    }
+    .delete-btn:hover {
+      background-color: #e03a3a;
+    }
   </style>
 </head>
 <body>
@@ -72,14 +117,14 @@
       const savedList = document.getElementById("saved");
       savedList.innerHTML = '';
 
-      if (data.saved_lines.length === 0) {
-        savedList.innerHTML = '<li>No saved lines yet!</li>';
+      if (!data.saved_lines.length) {
+        savedList.innerHTML = '<li>No saved pickup lines yet!</li>';
         return;
       }
 
       data.saved_lines.forEach(entry => {
         const li = document.createElement('li');
-        li.innerText = `${entry.line} (${entry.rating}★)`;
+        li.innerHTML = `<strong>${entry.line}</strong> (${entry.rating}★)`;
 
         const deleteBtn = document.createElement('button');
         deleteBtn.innerText = '🗑️';

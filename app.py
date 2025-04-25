@@ -1,9 +1,9 @@
 from flask import Flask, jsonify, render_template, request
-import openai
 import os
+import openai
+import requests
 import json
 import random
-import requests
 
 app = Flask(__name__)
 
@@ -35,20 +35,20 @@ def index():
 @app.route("/api/dirtylines", methods=["GET"])
 def get_dirty_lines():
     saved_lines = load_saved_lines()
+
     examples_text = ""
     if saved_lines:
         examples = random.sample(saved_lines, min(3, len(saved_lines)))
-        examples_text = "\nExamples:\n" + "\n".join(f"- {entry['line']}" for entry in examples)
+        examples_text = "\nHere are some examples:\n" + "\n".join(f"- {entry['line']}" for entry in examples)
 
     prompt = f"""
-Generate 10 short, funny, dirty pickup lines for my wife. 
-Make them playful, suggestive, flirty, and under 30 words each.
-Use double meanings and humor. {examples_text}
+Generate 10 short, funny, dirty pickup lines for my wife.
+Make them playful, suggestive, slightly NSFW, flirty, and under 30 words each.
+Use clever double meanings, humor, and innuendo.
+{examples_text}
 
-Number each line like:
-1. Line one
-2. Line two
-...
+Respond only with a pure JSON array of pickup lines like:
+["line 1", "line 2", "line 3", ..., "line 10"]
 """
 
     try:
@@ -63,22 +63,14 @@ Number each line like:
                 "model": "gpt-4o",
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.95,
-                "max_tokens": 300
+                "max_tokens": 400
             },
             timeout=15
         )
         data = response.json()
-        text = data["choices"][0]["message"]["content"]
+        text = data["choices"][0]["message"]["content"].strip()
 
-        # Split lines cleanly
-        lines = []
-        for line in text.split("\n"):
-            line = line.strip()
-            if line and line[0].isdigit():
-                parts = line.split(".", 1)
-                if len(parts) > 1:
-                    lines.append(parts[1].strip())
-
+        lines = json.loads(text)  # Expect clean JSON array
         return jsonify({"lines": lines})
 
     except Exception as e:
@@ -107,7 +99,7 @@ def delete_line():
     line = data.get("line")
 
     if not line:
-        return jsonify({"error": "Missing line"}), 400
+        return jsonify({"error": "Missing line to delete"}), 400
 
     saved_lines = load_saved_lines()
     saved_lines = [entry for entry in saved_lines if entry["line"] != line]
@@ -124,7 +116,7 @@ def get_saved_lines():
 def ha_pickup_line():
     saved_lines = load_saved_lines()
     if not saved_lines:
-        return jsonify({"line": "No saved lines yet!"})
+        return jsonify({"line": "No saved pickup lines yet!"})
     return jsonify({"line": random.choice(saved_lines)["line"]})
 
 if __name__ == "__main__":
