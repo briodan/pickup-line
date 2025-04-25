@@ -14,4 +14,4 @@ COPY templates ./templates
 EXPOSE 5000
 
 # Run using Gunicorn for proper logging
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app", "--log-level=info"]
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app", "--log-level=info", "--timeout=120"]
