@@ -5,53 +5,65 @@
   <title>Pickup Line Generator</title>
   <style>
     body { font-family: sans-serif; text-align: center; padding: 2rem; background-color: #fff5f8; }
-    button { font-size: 1.2rem; padding: 0.8rem 1.5rem; background-color: #ff69b4; border: none; border-radius: 8px; color: white; cursor: pointer; }
+    button { font-size: 1rem; padding: 0.5rem 1rem; margin: 0.3rem; background-color: #ff69b4; border: none; border-radius: 8px; color: white; cursor: pointer; }
     button:hover { background-color: #ff4fa3; }
-    #line { margin-top: 2rem; font-size: 1.5rem; font-style: italic; color: #333; }
-    .stars button { margin: 0 5px; font-size: 1.5rem; background: none; border: none; color: #ffa500; cursor: pointer; }
+    .line { margin-top: 1rem; font-size: 1.2rem; font-style: italic; color: #333; }
+    .stars button { background: none; border: none; color: #ffa500; font-size: 1.5rem; cursor: pointer; }
     .saved-lines { margin-top: 3rem; }
+    ul { list-style-type: none; padding: 0; }
+    li { margin: 0.5rem 0; }
+    .delete-btn { font-size: 0.9rem; background-color: #ff4f4f; border: none; border-radius: 5px; padding: 0.3rem 0.5rem; margin-left: 10px; color: white; cursor: pointer; }
+    .delete-btn:hover { background-color: #e03a3a; }
   </style>
 </head>
 <body>
-  <h1>💘 Pickup Line Generator</h1>
-  <button onclick="generateLine()">Give Me a Line</button>
 
-  <div id="line"></div>
-  <div id="rating" style="margin-top: 1rem;" class="stars"></div>
+  <h1>💘 Pickup Line Generator</h1>
+  <button onclick="generateLines()">Give Me 10 Lines</button>
+
+  <div id="lines"></div>
 
   <div class="saved-lines">
-    <h2>⭐ Saved Lines</h2>
+    <h2>⭐ Saved Pickup Lines</h2>
     <ul id="saved"></ul>
   </div>
 
   <script>
-    let currentLine = '';
-
-    async function generateLine() {
-      const res = await fetch('/api/dirtyline');
+    async function generateLines() {
+      const res = await fetch('/api/dirtylines');
       const data = await res.json();
-      document.getElementById("line").innerText = data.line || data.error || "Something went wrong";
-      currentLine = data.line;
-      showRating();
-      fetchSaved();
-    }
+      const linesDiv = document.getElementById("lines");
+      linesDiv.innerHTML = '';
 
-    function showRating() {
-      const ratingDiv = document.getElementById("rating");
-      ratingDiv.innerHTML = 'Rate it: ';
-      for (let i = 1; i <= 5; i++) {
-        ratingDiv.innerHTML += `<button onclick="rateLine(${i})">★</button>`;
+      if (data.lines) {
+        data.lines.forEach(line => {
+          const div = document.createElement('div');
+          div.className = 'line';
+          div.innerText = line;
+
+          const ratingDiv = document.createElement('div');
+          ratingDiv.className = 'stars';
+
+          for (let i = 1; i <= 5; i++) {
+            const star = document.createElement('button');
+            star.innerText = '★';
+            star.onclick = () => rateLine(line, i);
+            ratingDiv.appendChild(star);
+          }
+
+          linesDiv.appendChild(div);
+          linesDiv.appendChild(ratingDiv);
+        });
       }
     }
 
-    async function rateLine(score) {
+    async function rateLine(line, rating) {
       await fetch('/api/rate_line', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ line: currentLine, rating: score })
+        body: JSON.stringify({ line: line, rating: rating })
       });
       fetchSaved();
-      alert("Thanks for rating!");
     }
 
     async function fetchSaved() {
@@ -59,14 +71,39 @@
       const data = await res.json();
       const savedList = document.getElementById("saved");
       savedList.innerHTML = '';
-      data.saved_lines.forEach(line => {
+
+      if (data.saved_lines.length === 0) {
+        savedList.innerHTML = '<li>No saved lines yet!</li>';
+        return;
+      }
+
+      data.saved_lines.forEach(entry => {
         const li = document.createElement('li');
-        li.innerText = line;
+        li.innerText = `${entry.line} (${entry.rating}★)`;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.innerText = '🗑️';
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.onclick = () => deleteSaved(entry.line);
+
+        li.appendChild(deleteBtn);
         savedList.appendChild(li);
       });
     }
 
+    async function deleteSaved(line) {
+      if (!confirm("Are you sure you want to delete this line?")) return;
+
+      await fetch('/api/delete_line', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ line: line })
+      });
+      fetchSaved();
+    }
+
     window.onload = fetchSaved;
   </script>
+
 </body>
 </html>
