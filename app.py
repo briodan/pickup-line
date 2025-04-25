@@ -17,7 +17,7 @@ app = Flask(__name__)
 # Config
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-SAVED_LINES_FILE = "saved_lines.json"
+SAVED_LINES_FILE = "data/saved_lines.json"
 
 # OpenAI client
 openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
