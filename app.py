@@ -83,9 +83,23 @@ Respond only with a pure JSON array of pickup lines like:
             timeout=15
         )
         data = response.json()
+
+        if "choices" not in data or not data["choices"]:
+            logging.error(f"Invalid OpenRouter response: {data}")
+            return jsonify({"error": "Invalid OpenRouter API response"}), 502
+
         text = data["choices"][0]["message"]["content"].strip()
 
-        lines = json.loads(text)
+        if not text:
+            logging.error(f"Empty message content received from OpenRouter: {data}")
+            return jsonify({"error": "Empty message from OpenRouter"}), 502
+
+        try:
+            lines = json.loads(text)
+        except json.JSONDecodeError as e:
+            logging.error(f"Failed to parse pickup lines JSON: {e}")
+            return jsonify({"error": "Failed to parse pickup lines."}), 502
+
         logging.info(f"Successfully generated {len(lines)} lines.")
         return jsonify({"lines": lines})
 
