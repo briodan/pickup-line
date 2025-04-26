@@ -91,6 +91,14 @@ Respond only with a pure JSON array of pickup lines like:
 
         text = data["choices"][0]["message"]["content"].strip()
 
+        # Remove Markdown-style triple backticks if present
+        if text.startswith("```"):
+            text = text.split("```")[1]  # grab inside part
+            text = text.strip()
+
+        # Now it should be a clean JSON array
+
+
         if not text:
             logging.error(f"Empty message content received from OpenRouter: {data}")
             return jsonify({"error": "Empty message from OpenRouter"}), 502
