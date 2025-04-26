@@ -77,7 +77,8 @@ Respond only with a pure JSON array of pickup lines like:
                 "model": "gpt-4o",
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.95,
-                "max_tokens": 400
+                "max_tokens": 400,
+                "stream": False   # <<< ADD THIS
             },
             timeout=15
         )
