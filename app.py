@@ -83,6 +83,7 @@ Respond only with a pure JSON array of pickup lines like:
             timeout=15
         )
         data = response.json()
+        logging.info(f"OpenRouter raw response JSON: {data}")
 
         if "choices" not in data or not data["choices"]:
             logging.error(f"Invalid OpenRouter response: {data}")
