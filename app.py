@@ -93,8 +93,13 @@ Respond only with a pure JSON array of pickup lines like:
 
         # Remove Markdown-style triple backticks if present
         if text.startswith("```"):
-            text = text.split("```")[1]  # grab inside part
+            logging.info("Stripping Markdown formatting from response")
+            parts = text.split("\n", 1)
+            if len(parts) > 1:
+                text = parts[1]  # skip first line (```json)
             text = text.strip()
+            if text.endswith("```"):
+                text = text[:-3].strip()
 
         # Now it should be a clean JSON array
 
